@@ -1,12 +1,12 @@
-use std::net::{SocketAddr, SocketAddrV4, ToSocketAddrs};
-use std::io;
-use std::sync::{Arc, Mutex, mpsc};
 use std::collections::HashMap;
+use std::io;
+use std::net::{SocketAddr, SocketAddrV4, ToSocketAddrs};
+use std::sync::{Arc, Mutex, mpsc};
 use std::time::SystemTime;
 
 use pnet::packet::ip::IpNextHeaderProtocols;
-use pnet::packet::udp::{MutableUdpPacket, UdpPacket, ipv4_checksum};
 use pnet::packet::ipv4::Ipv4Packet;
+use pnet::packet::udp::{MutableUdpPacket, UdpPacket, ipv4_checksum};
 use pnet::packet::Packet;
 
 use {RxError, RxResult, TxError, TxResult};
@@ -131,19 +131,22 @@ impl UdpSocketReader {
     }
 
     pub fn recv_from(&self, buf: &mut [u8]) -> io::Result<(usize, SocketAddr)> {
-        let (_time, data) = self.port.recv().unwrap();
-        let ipv4_pkg = Ipv4Packet::new(&data).unwrap();
-        let ip = ipv4_pkg.get_source();
-        let udp_pkg = UdpPacket::new(ipv4_pkg.payload()).unwrap();
-        let port = udp_pkg.get_source();
-        let data = udp_pkg.payload();
-        if data.len() > buf.len() {
-            Err(io::Error::new(io::ErrorKind::InvalidInput,
-                               "Data does not fit buffer".to_owned()))
-        } else {
-            buf[..data.len()].copy_from_slice(data);
-            Ok((data.len(), SocketAddr::V4(SocketAddrV4::new(ip, port))))
+        if let Ok((_time, data)) = self.port.recv() {
+            let ipv4_pkg = Ipv4Packet::new(&data).unwrap();
+            let ip = ipv4_pkg.get_source();
+            let udp_pkg = UdpPacket::new(ipv4_pkg.payload()).unwrap();
+            let port = udp_pkg.get_source();
+            let data = udp_pkg.payload();
+            if data.len() > buf.len() {
+                return Err(io::Error::new(io::ErrorKind::InvalidInput,
+                                   "Data does not fit buffer".to_owned()));
+            } else {
+                buf[..data.len()].copy_from_slice(data);
+                return Ok((data.len(), SocketAddr::V4(SocketAddrV4::new(ip, port))));
+            }
         }
+        Err(io::Error::new(io::ErrorKind::WouldBlock,
+                                   "Not ready to read".to_owned()))
     }
 
     pub fn listener(&mut self) -> UdpSocketListener {
