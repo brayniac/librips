@@ -4,7 +4,7 @@
 
 use std::thread;
 use std::collections::HashMap;
-use std::time::SystemTime;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use pnet::datalink::EthernetDataLinkReceiver;
 use pnet::packet::ethernet::{EtherType, EthernetPacket, MutableEthernetPacket};
@@ -116,7 +116,7 @@ impl EthernetRx {
         loop {
             match rx_iter.next() {
                 Ok(pkg) => {
-                    let time = SystemTime::now();
+                    let time = UNIX_EPOCH;
                     let ethertype = pkg.get_ethertype();
                     match self.listeners.get_mut(&ethertype) {
                         Some(listeners) => {
