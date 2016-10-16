@@ -23,7 +23,7 @@ integration-tests = [] # Activate to build for integration testing
 benchmarks = []
 
 [dependencies.pnet]
-git = "https://github.com/faern/libpnet"
+git = "https://github.com/brayniac/libpnet"
 branch = "working-stack"
 #path = "../libpnet"
 
