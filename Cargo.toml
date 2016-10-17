@@ -21,6 +21,7 @@ default = []
 unit-tests = [] # Activate this to build for unit testing
 integration-tests = [] # Activate to build for integration testing
 benchmarks = []
+netmap = [ "pnet/netmap" ]
 
 [dependencies.pnet]
 git = "https://github.com/brayniac/libpnet"
