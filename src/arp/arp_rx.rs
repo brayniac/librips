@@ -32,16 +32,17 @@ impl EthernetListener for ArpRx {
         let arp_pkg = ArpPacket::new(pkg.payload()).unwrap();
         let ip = arp_pkg.get_sender_proto_addr();
         let mac = arp_pkg.get_sender_hw_addr();
-        debug!("ARP, {} is-at {}", ip, mac);
 
         let mut data = try!(self.data.lock().or(Err(RxError::PoisonedLock)));
         let old_mac = data.table.insert(ip, mac);
         if old_mac.is_none() || old_mac != Some(mac) {
             // The new MAC is different from the old one, bump tx VersionedTx
+            debug!("ARP, Learned {} is-at {}", ip, mac);
             try!(self.vtx.lock().or(Err(RxError::PoisonedLock))).inc();
         }
         if let Some(listeners) = data.listeners.remove(&ip) {
             for listener in listeners {
+                debug!("ARP, Reply {} is-at {}", ip, mac);
                 listener.send(mac).unwrap_or(());
             }
         }
