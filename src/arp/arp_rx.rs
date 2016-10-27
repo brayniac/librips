@@ -32,7 +32,7 @@ impl EthernetListener for ArpRx {
         let arp_pkg = ArpPacket::new(pkg.payload()).unwrap();
         let ip = arp_pkg.get_sender_proto_addr();
         let mac = arp_pkg.get_sender_hw_addr();
-        debug!("Arp MAC: {} -> IPv4: {}", mac, ip);
+        debug!("ARP, {} is-at {}", ip, mac);
 
         let mut data = try!(self.data.lock().or(Err(RxError::PoisonedLock)));
         let old_mac = data.table.insert(ip, mac);
