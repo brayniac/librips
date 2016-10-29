@@ -39,8 +39,8 @@ impl EthernetListener for ArpRx {
                 let tgt_ip = arp_pkg.get_target_proto_addr();
                 let src_ip = arp_pkg.get_sender_proto_addr();
                 debug!("ARP, Request who-has {} tell {}", tgt_ip, src_ip);
-
-                if data.listeners.entry(&tgt_ip) {
+                let data = try!(self.data.lock().or(Err(RxError::PoisonedLock)));
+                if let Some(_) = data.listeners.get(&tgt_ip) {
                     debug!("ARP, should respond");
                 }
             }
